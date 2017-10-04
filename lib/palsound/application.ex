@@ -15,8 +15,9 @@ defmodule Palsound.Application do
       worker(Palsound.Retriever.Videos, []),
     ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
+    dynamically = [worker(Palsound.Retriever.Checker, [])]
+    supervise(dynamically, strategy: :simple_one_for_one)
+
     opts = [strategy: :one_for_one, name: Palsound.Supervisor]
     Supervisor.start_link(children, opts)
   end

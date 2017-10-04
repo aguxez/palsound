@@ -42,7 +42,8 @@ defmodule Palsound.Mixfile do
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0"},
       {:tub_ex, github: "Aguxez/tub_ex", branch: "get_items"},
-      {:porcelain, "~> 2.0"}
+      {:porcelain, "~> 2.0"},
+      {:gproc, "~> 0.6.1"},
     ]
   end
 
