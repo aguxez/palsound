@@ -28,7 +28,8 @@ defmodule Palsound.Retriever.Videos do
 
   # Server and API
   def run do
-    songs = List.flatten(get_list())
+    # songs = List.flatten(get_list())
+    songs = get_list() |> List.flatten() |> Enum.take(20)
 
     unless File.exists?("songs"), do: File.mkdir("songs")
 

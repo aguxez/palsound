@@ -12,6 +12,7 @@ defmodule Palsound.Application do
       supervisor(Palsound.Repo, []),
       # Start the endpoint when the application starts
       supervisor(PalsoundWeb.Endpoint, []),
+      supervisor(Registry, [:unique, :songs_registry]),
       worker(Palsound.Retriever.Videos, []),
     ]
 

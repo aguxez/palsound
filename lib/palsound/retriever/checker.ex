@@ -8,15 +8,16 @@ defmodule Palsound.Retriever.Checker do
   of a overload.
   """
 
-  # TODO: Make this in a form of queue so Songs will be dispatched
-  # like the should...
+  # TODO: GenServer is having a bad return value when the first message
+  # is receiveed, I think.
 
   use GenServer
 
   alias Palsound.Retriever.Videos
 
   def start_link(name) do
-    GenServer.start_link(__MODULE__, %{name: name}, name: via_tuple(name))
+    GenServer.start_link(__MODULE__, %{name: name, songs: []},
+                        name: via_tuple(name))
   end
 
   def queue(name, songs) do
@@ -28,17 +29,20 @@ defmodule Palsound.Retriever.Checker do
   end
 
   def via_tuple(name) do
-    {:via, :gproc, {:n, :l, {:name, name}}}
+    {:via, Registry, {:songs_registry, name}}
   end
 
   # Server
   def init(%{name: name} = state) do
-    schedule_checks(name)
+    [{pid, _}] = Registry.lookup(:songs_registry, name)
+
+    schedule_checks(pid)
     {:ok, state}
   end
 
-  defp schedule_checks(name) do
-    Process.send_after(name, :check, 60_000)
+  defp schedule_checks(pid) do
+    IO.inspect(pid, label: "Schedule PID")
+    Process.send_after(pid, :check, 60_000)
   end
 
   def handle_info(:check, state) do
@@ -55,22 +59,28 @@ defmodule Palsound.Retriever.Checker do
     {:ok, state}
   end
 
+  # This function takes 10 elements of the passed list to start the queue
+  # then after all the process the `dispatch/1` function will send the
+  # remaining songs, 10 by 10.
   def handle_cast({:queue, songs}, state) do
-    new_state =
-      state
-      |> Map.put(:songs, [])
-      |> Map.put(:songs, songs)
+    ten_songs = Enum.take(songs, 10)
+    songs_path = "songs/%(title)s.%(ext)s"
+    state_map = Map.put(state, :songs, songs)
 
-    Videos.queue_and_download(songs, songs_path)
+    new_state =
+      Enum.reject(state_map.songs, fn x -> x in ten_songs end)
+
+    IO.puts("Sending some songs to download queue")
+    Videos.queue_and_download(ten_songs, songs_path)
 
     {:noreply, new_state}
   end
 
   def handle_cast(:dispatch, state) do
     new_songs_list = Enum.take(state, 10)
-    songs_path = "songs/%(title)s.%(ext)s"
-    new_state = Enum.reject(state, fn x -> x in new_songs_list end)
+    new_state = Enum.reject(state.songs, fn x -> x in new_songs_list end)
 
+    IO.inspect("Sending #{new_songs_list} to queue")
     queue(:songs, new_songs_list)
 
     {:noreply, new_state}
