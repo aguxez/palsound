@@ -8,9 +8,6 @@ defmodule Palsound.Retriever.Checker do
   of a overload.
   """
 
-  # TODO: GenServer is having a bad return value when the first message
-  # is receiveed, I think.
-
   use GenServer
 
   alias Palsound.Retriever.Videos
@@ -33,16 +30,15 @@ defmodule Palsound.Retriever.Checker do
   end
 
   # Server
-  def init(%{name: name} = state) do
-    [{pid, _}] = Registry.lookup(:songs_registry, name)
+  def init(%{name: name, songs: songs}) do
+    pid = get_gen_pid(name)
 
     schedule_checks(pid)
-    {:ok, state}
+    {:ok, songs}
   end
 
   defp schedule_checks(pid) do
-    IO.inspect(pid, label: "Schedule PID")
-    Process.send_after(pid, :check, 60_000)
+    Process.send_after(pid, :check, 30_000)
   end
 
   def handle_info(:check, state) do
@@ -51,12 +47,15 @@ defmodule Palsound.Retriever.Checker do
       |> File.ls!()
       |> Enum.reject(fn x -> String.ends_with?(x, "mp3") end)
 
-    if length(files) <= 2 do
+    if length(files) <= 1 do
       Enum.each(files, &File.rm_rf("songs/" <> &1))
       dispatch(:songs)
     end
 
-    {:ok, state}
+    pid = get_gen_pid(:songs)
+    schedule_checks(pid)
+
+    {:noreply, state}
   end
 
   # This function takes 10 elements of the passed list to start the queue
@@ -65,24 +64,28 @@ defmodule Palsound.Retriever.Checker do
   def handle_cast({:queue, songs}, state) do
     ten_songs = Enum.take(songs, 10)
     songs_path = "songs/%(title)s.%(ext)s"
-    state_map = Map.put(state, :songs, songs)
+    state_map = Keyword.put(state, :songs, songs)
 
     new_state =
-      Enum.reject(state_map.songs, fn x -> x in ten_songs end)
+      Enum.reject(state_map[:songs], fn x -> x in ten_songs end)
 
-    IO.puts("Sending some songs to download queue")
     Videos.queue_and_download(ten_songs, songs_path)
 
-    {:noreply, new_state}
+    {:noreply, [songs: new_state]}
   end
 
   def handle_cast(:dispatch, state) do
-    new_songs_list = Enum.take(state, 10)
-    new_state = Enum.reject(state.songs, fn x -> x in new_songs_list end)
+    new_songs_list = Enum.take(state[:songs], 10)
+    new_state = Enum.reject(state[:songs], fn x -> x in new_songs_list end)
 
-    IO.inspect("Sending #{new_songs_list} to queue")
-    queue(:songs, new_songs_list)
+    IO.inspect("Sending #{length(new_songs_list)} songs to queue")
+    queue(:songs, new_state)
 
-    {:noreply, new_state}
+    {:noreply, [songs: new_state]}
+  end
+
+  defp get_gen_pid(name) do
+    [{pid, _}] = Registry.lookup(:songs_registry, name)
+    pid
   end
 end

@@ -28,8 +28,7 @@ defmodule Palsound.Retriever.Videos do
 
   # Server and API
   def run do
-    # songs = List.flatten(get_list())
-    songs = get_list() |> List.flatten() |> Enum.take(20)
+    songs = List.flatten(get_list())
 
     unless File.exists?("songs"), do: File.mkdir("songs")
 
@@ -53,8 +52,6 @@ defmodule Palsound.Retriever.Videos do
     playlist
     |> Enum.map(fn x -> "youtube.com/watch?v=" <> x.resource_id["videoId"] end)
     |> save()
-
-    IO.inspect next_page, label: "NEXT_PAGE"
 
     if next_page do
       defaults
