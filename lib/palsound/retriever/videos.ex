@@ -7,7 +7,8 @@ defmodule Palsound.Retriever.Videos do
   alias Porcelain.Process, as: Proc
   alias Palsound.Retriever.Checker
 
-  @playlist_id "PLbggoxi0-M8ytOrH6_-pS6ynp8bAWgHUK"
+  # @playlist_id "PLbggoxi0-M8ytOrH6_-pS6ynp8bAWgHUK"
+  # Palsound.Retriever.Videos.run("PLbggoxi0-M8ytOrH6_-pS6ynp8bAWgHUK")
 
   # Agent
   def start_link do
@@ -27,8 +28,11 @@ defmodule Palsound.Retriever.Videos do
   end
 
   # Server and API
-  def run do
-    songs = List.flatten(get_list())
+  def run(playlist) do
+    songs =
+      playlist
+      |> get_list()
+      |> List.flatten()
 
     unless File.exists?("songs"), do: File.mkdir("songs")
 
@@ -41,11 +45,11 @@ defmodule Palsound.Retriever.Videos do
     IO.puts("Queued songs")
   end
 
-  def get_list(opts \\ []) do
+  def get_list(playlist_id, opts \\ []) do
     defaults = [maxResults: 50]
 
     {:ok, playlist, meta} =
-      Playlist.get_items(@playlist_id, Keyword.merge(defaults, opts))
+      Playlist.get_items(playlist_id, Keyword.merge(defaults, opts))
 
     next_page = meta["nextPageToken"]
 
@@ -54,9 +58,8 @@ defmodule Palsound.Retriever.Videos do
     |> save()
 
     if next_page do
-      defaults
-      |> Keyword.merge([pageToken: next_page])
-      |> get_list()
+      options = Keyword.merge(defaults, [pageToken: next_page])
+      get_list(playlist_id, options)
     else
       state = show()
       clean()
@@ -68,7 +71,7 @@ defmodule Palsound.Retriever.Videos do
     Enum.each(songs, fn curr_song ->
       %Proc{out: audio} =
         Porcelain.spawn(System.find_executable("youtube-dl"),
-          ~w(-i --audio-format mp3 --extract-audio
+          ~w(-i --audio-format mp3 --extract-audio --write-thumbnail
             -o #{songs_path} #{curr_song}), out: :stream)
 
       audio
