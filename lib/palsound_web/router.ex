@@ -18,6 +18,7 @@ defmodule PalsoundWeb.Router do
 
     get "/", PageController, :index
 
+    get "/processing/:playlist_id", SongProcess, :processing
     post "/search_playlist", SongProcess, :process_songs
   end
 

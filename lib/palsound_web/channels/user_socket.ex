@@ -6,7 +6,7 @@ defmodule PalsoundWeb.UserSocket do
 
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket
-  # transport :longpoll, Phoenix.Transports.LongPoll
+  channel "process:*", PalsoundWeb.ProcessingChannel
 
   # Socket params are passed from the client and can
   # be used to verify and authenticate a user. After
@@ -33,5 +33,7 @@ defmodule PalsoundWeb.UserSocket do
   #     PalsoundWeb.Endpoint.broadcast("user_socket:#{user.id}", "disconnect", %{})
   #
   # Returning `nil` makes this socket anonymous.
+  # def id(_socket), do: nil
+
   def id(_socket), do: nil
 end
