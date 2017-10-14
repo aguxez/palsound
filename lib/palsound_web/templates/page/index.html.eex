@@ -1,7 +1,30 @@
-<div class="form-group">
-  <%= form_for @conn, song_process_path(@conn, :process_songs), [as: :song], fn f -> %>
-    <%= text_input f, :search, class: 'form-control', placeholder: "Type the playlist id" %>
+<br />
+<h2 class="text-center">Process your playlist</h1>
 
-    <%= submit "Search" %>
-  <% end %>
-</div>
+<%= form_for @conn, song_process_path(@conn, :process_songs), [as: :song], fn f -> %>
+  <div class="grid-container">
+    <div class="grid-x grid-margin-x">
+      <div class="medium-12 cell">
+        <%= label f, :search, "Playlist ID" %>
+        <%= text_input f, :search, placeholder: "Type the playlist id", required: true %>
+      </div>
+
+      <div class="text-center cell">
+        <div class="medium-8 large-4 cell">
+          <%= label f, :songs_quantity, "Quantity" %>
+          <%= number_input f, :songs_quantity, min: 1, max: 10, value: 1 %>
+        </div>
+
+        <div class="medium-2 cell">
+          <%= checkbox f, :all %>
+          <%= label f, :all, "All songs" %>
+        </div>
+      </div>
+
+      <div class="text-center cell">
+        <br />
+        <%= submit "Search", class: "button" %>
+      </div>
+    </div>
+  </div>
+<% end %>

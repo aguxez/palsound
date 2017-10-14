@@ -1,0 +1,3 @@
+<div>
+  <h1 class="text-center"> Processing your playlist <%= @id %> </h1>
+</div>

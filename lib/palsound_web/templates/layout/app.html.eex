@@ -12,9 +12,22 @@
   </head>
 
   <body>
-    <div class="container">
-      <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
-      <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
+    <div class="grid-container">
+      <%
+        info = get_flash(@conn, :info)
+        alert = get_flash(@conn, :error)
+      %>
+
+      <br />
+
+      <%= cond do %>
+        <% info -> %>
+          <p class="callout success" alert="role"><%= get_flash(@conn, :info) %></p>
+        <% alert -> %>
+          <p class="callout alert" alert="role"><%= get_flash(@conn, :error) %></p>
+        <% true -> %>
+          <%= nil %>
+      <% end %>
 
       <main role="main">
         <%= render @view_module, @view_template, assigns %>
