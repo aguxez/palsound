@@ -10,6 +10,8 @@ defmodule Palsound.Retriever.Checker do
 
   use GenServer
 
+  require Logger
+
   alias Palsound.Retriever.Videos
 
   def start_link(name) do
@@ -50,10 +52,13 @@ defmodule Palsound.Retriever.Checker do
     if length(files) <= 1 do
       Enum.each(files, &File.rm_rf("songs/" <> &1))
       dispatch(:songs)
+      IO.inspect(state, label: "STATE")
     end
 
-    pid = get_gen_pid(:songs)
-    schedule_checks(pid)
+    unless state[:songs] == [] do
+      pid = get_gen_pid(:songs)
+      schedule_checks(pid)
+    end
 
     {:noreply, state}
   end
@@ -78,7 +83,7 @@ defmodule Palsound.Retriever.Checker do
     new_songs_list = Enum.take(state[:songs], 10)
     new_state = Enum.reject(state[:songs], fn x -> x in new_songs_list end)
 
-    IO.inspect("Sending #{length(new_songs_list)} songs to queue")
+    Logger.info("Sending #{length(new_songs_list)} songs to queue")
     queue(:songs, new_state)
 
     {:noreply, [songs: new_state]}

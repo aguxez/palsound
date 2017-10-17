@@ -5,12 +5,10 @@ defmodule Palsound.Retriever.Videos do
 
   alias TubEx.Playlist
   alias Porcelain.Process, as: Proc
-  alias Palsound.Retriever.Checker
+  alias Palsound.{Retriever.Checker, Service.Cache}
 
-  # @playlist_id "PLbggoxi0-M8ytOrH6_-pS6ynp8bAWgHUK"
-  # Palsound.Retriever.Videos.run("PLbggoxi0-M8ytOrH6_-pS6ynp8bAWgHUK")
-
-  # TODO: Return error values appropiately.
+  # @playlist_id "PLbggoxi0-M8zfSf5gu4AVHO5BhX6zyv0Z"
+  # Palsound.Retriever.Videos.run("PLbggoxi0-M8zfSf5gu4AVHO5BhX6zyv0Z")
 
   # Agent
   def start_link do
@@ -31,35 +29,42 @@ defmodule Palsound.Retriever.Videos do
 
   # Server and API
   def run(playlist_id, amount \\ nil) do
-    playlist = get_list(playlist_id)
-    songs = fn ->
-      if amount do
-        playlist
-        |> List.flatten()
-        |> Enum.take(amount)
-      else
-        playlist_id
-        |> get_list()
-        |> List.flatten()
-      end
+    playlist_id
+    |> get_list()
+    |> Cache.save()
+
+    case Cache.show() do
+      {:ok, playlist, meta} ->
+        songs_list =
+          process_playlist({:ok, playlist, meta}, [maxResults: 50], playlist_id)
+
+        songs = fn ->
+          if amount do
+            songs_list
+            |> List.flatten()
+            |> Enum.take(amount)
+          else
+            List.flatten(songs_list)
+          end
+        end
+
+        unless File.exists?("songs"), do: File.mkdir("songs")
+
+        Checker.start_link(:songs)
+        Checker.queue(:songs, songs.())
+
+        queued = "Queued songs"
+        IO.puts(queued)
+        queued
+      {:error, _} ->
+        []
     end
-
-    unless File.exists?("songs"), do: File.mkdir("songs")
-
-    Checker.start_link(:songs)
-    Checker.queue(:songs, songs.())
-
-    queued = "Queued songs"
-    IO.puts(queued)
-    queued
   end
 
   def get_list(playlist_id, opts \\ []) do
     defaults = [maxResults: 50]
 
-    playlist_id
-    |> Playlist.get_items(Keyword.merge(defaults, opts))
-    |> process_playlist(defaults, playlist_id)
+    Playlist.get_items(playlist_id, Keyword.merge(defaults, opts))
   end
 
   defp process_playlist({:ok, playlist, meta}, defaults, playlist_id) do
@@ -85,9 +90,10 @@ defmodule Palsound.Retriever.Videos do
     Enum.each(songs, fn curr_song ->
       %Proc{out: audio} =
         Porcelain.spawn(System.find_executable("youtube-dl"),
-          ~w(-i --audio-format mp3 --extract-audio --write-thumbnail
+          ~w(-i --audio-format mp3 --extract-audio
             -o #{songs_path} #{curr_song}), out: :stream)
 
+      # I should find a way to make thumbnails optional.
       audio
     end)
   end
