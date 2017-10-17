@@ -1,30 +1,34 @@
 <br />
-<h2 class="text-center">Process your playlist</h1>
+<div class="grid-x">
+  <div class="medium-4 cell">
+    <%= img_tag static_path(@conn, "/images/logo.png"), id: "logo_cd" %>
+  </div>
 
-<%= form_for @conn, song_process_path(@conn, :process_songs), [as: :song], fn f -> %>
-  <div class="grid-container">
-    <div class="grid-x grid-margin-x">
-      <div class="medium-12 cell">
-        <%= label f, :search, "Playlist ID" %>
-        <%= text_input f, :search, placeholder: "Type the playlist id", required: true %>
-      </div>
+  <div class="small-12 medium-8 larger-8 cell">
+  <br />
+    <%= form_for @conn, song_process_path(@conn, :process_songs), [as: :song], fn f -> %>
+      <div class="grid-x grid-margin-x">
+        <div class="small-12 medium-8 cell">
+          <%= label f, :search, "Playlist ID" %>
+          <%= text_input f, :search, placeholder: "Type the playlist id", required: true %>
+        </div>
 
-      <div class="text-center cell">
-        <div class="medium-8 large-4 cell">
+        <div class="small-12 medium-4 cell">
           <%= label f, :songs_quantity, "Quantity" %>
           <%= number_input f, :songs_quantity, min: 1, max: 10, value: 1 %>
         </div>
 
-        <div class="medium-2 cell">
+        <div class="text-center cell">
+          <br />
           <%= checkbox f, :all %>
           <%= label f, :all, "All songs" %>
         </div>
-      </div>
 
-      <div class="text-center cell">
-        <br />
-        <%= submit "Search", class: "button" %>
+        <div class="text-center cell">
+          <br />
+          <%= submit "Search", class: "button" %>
+        </div>
       </div>
-    </div>
+    <% end %>
   </div>
-<% end %>
+</div>
