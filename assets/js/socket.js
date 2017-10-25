@@ -24,4 +24,12 @@ channel.join()
   .receive("ok", resp => { console.log("Joined " + playlist_id(), resp) })
   .receive("error", resp => { console.log("Unable to join", resp) })
 
+channel.on("pushing_file", payload => {
+  // Remove the loading icon from the page as it's done.
+  let load_spinner = document.getElementById("load_spinner")
+  load_spinner.parentNode.removeChild(load_spinner)
+
+  document.body.innerHTML +=
+    '<iframe width="1" height="1" frameborder="0" src="/songs/songs.tar"></iframe>'
+})
 export default socket

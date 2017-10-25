@@ -1,3 +1,15 @@
-<div>
-  <h1 class="text-center"> Processing your playlist <%= @id %> </h1>
+<div class="grid-x grid-margin">
+  <div class="text-center cell">
+    <%= link(img_tag(static_path(@conn, "/images/logo.png"),
+                    class: "logo-process"), to: "/") %>
+  </div>
+
+  <div class="text-center cell">
+    <h5>
+      Currently processing your playlist with ID <%= @id %>, we'll notify you
+      when it's done.
+    </h5>
+
+    <%= img_tag(static_path(@conn, "/images/Spinner.svg"), id: "load_spinner") %>
+  </div>
 </div>
