@@ -12,3 +12,19 @@ body {
   margin-top: -8%;
   margin-bottom: -7%;
 }
+
+.logo-process {
+  -webkit-transform:rotate(295deg);
+  -moz-transform: rotate(295deg);
+  -ms-transform: rotate(295deg);
+  -o-transform: rotate(295deg);
+  transform: rotate(295deg);
+  max-width: 40%;
+  margin-top: -4%;
+  margin-bottom: -5%;
+}
+
+// Override Foundation top bar
+.top-bar {
+  background-color: #2c3840;
+}
