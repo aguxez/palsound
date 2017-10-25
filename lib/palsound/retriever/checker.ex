@@ -12,7 +12,9 @@ defmodule Palsound.Retriever.Checker do
 
   require Logger
 
-  alias Palsound.Retriever.Videos
+  alias Palsound.{Retriever.Videos, Service.Packager}
+
+  @playlist "PLbggoxi0-M8zfSf5gu4AVHO5BhX6zyv0Z"
 
   def start_link(name) do
     GenServer.start_link(__MODULE__, %{name: name, songs: []},
@@ -52,10 +54,13 @@ defmodule Palsound.Retriever.Checker do
     if length(files) <= 1 do
       Enum.each(files, &File.rm_rf("songs/" <> &1))
       dispatch(:songs)
-      IO.inspect(state, label: "STATE")
     end
 
-    unless state[:songs] == [] do
+    if state[:songs] == [] do
+      Packager.package()
+      PalsoundWeb.ProcessingChannel.push(@playlist)
+      Logger.info("ALL SONGS DISPATCHED")
+    else
       pid = get_gen_pid(:songs)
       schedule_checks(pid)
     end

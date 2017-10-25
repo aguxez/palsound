@@ -3,6 +3,8 @@ defmodule Palsound.Retriever.Videos do
 
   use Agent
 
+  require Logger
+
   alias TubEx.Playlist
   alias Porcelain.Process, as: Proc
   alias Palsound.{Retriever.Checker, Service.Cache}
@@ -54,7 +56,7 @@ defmodule Palsound.Retriever.Videos do
         Checker.queue(:songs, songs.())
 
         queued = "Queued songs"
-        IO.puts(queued)
+        Logger.info(queued)
         queued
       {:error, _} ->
         []
@@ -93,7 +95,7 @@ defmodule Palsound.Retriever.Videos do
           ~w(-i --audio-format mp3 --extract-audio
             -o #{songs_path} #{curr_song}), out: :stream)
 
-      # I should find a way to make thumbnails optional.
+      #TODO: Find a way to make thumbnails optional.
       audio
     end)
   end

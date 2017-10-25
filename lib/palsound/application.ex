@@ -15,6 +15,7 @@ defmodule Palsound.Application do
       supervisor(Registry, [:unique, :songs_registry]),
       worker(Palsound.Retriever.Videos, []),
       worker(Palsound.Service.Cache, []),
+      worker(Palsound.Service.Packager, []),
     ]
 
     dynamically = [worker(Palsound.Retriever.Checker, [])]
