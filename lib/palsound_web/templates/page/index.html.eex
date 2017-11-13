@@ -18,10 +18,19 @@
           <%= number_input f, :songs_quantity, min: 1, max: 10, value: 1 %>
         </div>
 
-        <div class="text-center cell">
+        <!-- Making space with an invisible div -->
+        <div class="small-1 medium-4 cell"></div>
+
+        <div class="small-5 medium-2 cell">
           <br />
           <%= checkbox f, :all %>
           <%= label f, :all, "All songs" %>
+        </div>
+
+        <div class="small-5 medium-6 cell">
+          <br />
+          <%= checkbox f, :thumbnail %>
+          <%= label f, :thumbnail, "Thumbnail" %>
         </div>
 
         <div class="text-center cell">

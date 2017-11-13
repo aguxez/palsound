@@ -4,7 +4,7 @@
                     class: "logo-process"), to: "/") %>
   </div>
 
-  <div class="text-center cell">
+  <div id="notification-text" class="text-center cell">
     <h5>
       Currently processing your playlist with ID <%= @id %>, we'll notify you
       when it's done.
