@@ -3,33 +3,38 @@
 
 // To use Phoenix channels, the first step is to import Socket
 // and connect at the socket path in "lib/web/endpoint.ex":
-import {Socket} from "phoenix"
+import {Socket} from "phoenix";
 
-let socket = new Socket("/socket", {params: {token: window.userToken}})
+let socket = new Socket("/socket", {params: {token: window.userToken}});
 
-socket.connect()
+socket.connect();
 
 function playlist_id() {
   let path = window.location.pathname;
-  path = path.split("/")
+  path = path.split("/");
 
-  return path[path.length - 1]
+  return path[path.length - 1];
 }
 
-console.log(playlist_id(), "process")
+console.log(playlist_id(), "process");
 
 // Now that you are connected, you can join channels with a topic:
-let channel = socket.channel("process:" + playlist_id(), {})
+let channel = socket.channel("process:" + playlist_id(), {});
 channel.join()
-  .receive("ok", resp => { console.log("Joined " + playlist_id(), resp) })
-  .receive("error", resp => { console.log("Unable to join", resp) })
+  .receive("ok", resp => { console.log("Joined " + playlist_id(), resp); })
+  .receive("error", resp => { console.log("Unable to join", resp); });
 
 channel.on("pushing_file", payload => {
   // Remove the loading icon from the page as it's done.
-  let load_spinner = document.getElementById("load_spinner")
-  load_spinner.parentNode.removeChild(load_spinner)
+  let load_spinner = document.getElementById("load_spinner");
+  let notification_text = document.getElementById("notification-text");
+
+  load_spinner.parentNode.removeChild(load_spinner);
 
   document.body.innerHTML +=
-    '<iframe width="1" height="1" frameborder="0" src="/songs/songs.tar"></iframe>'
-})
-export default socket
+        '<iframe width="1" height="1" frameborder="0" src="/songs/songs_' + payload.playlist + '.tar"></iframe>';
+
+  notification_text.innerHTML = '<h5>Your song has been processed</h5>';
+});
+
+export default socket;
