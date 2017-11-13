@@ -10,22 +10,29 @@ defmodule Palsound.Service.Packager do
   use GenServer
 
   # API
-  def start_link do
-    GenServer.start_link(__MODULE__, [], name: :packager)
-  end
+  def start_link,
+    do: GenServer.start_link(__MODULE__, [], name: :packager)
 
-  def package do
-    GenServer.call(:packager, :package)
+  def package(id) do
+    GenServer.call(:packager, {:package, id})
   end
 
   # Server
   def init(state), do: {:ok, state}
 
-  def handle_call(:package, _from, state) do
+  def handle_call({:package, playlist}, _from, state) do
     tar = System.find_executable("tar")
 
-    System.cmd(tar, ~w(-cvf priv/static/songs/songs.tar songs/))
+    # Create the 'songs' folder if it doesn't exists and then
+    # creates each folder for each playlist respectively.
+    unless File.exists?("priv/static/songs"),
+      do: File.mkdir("priv/static/songs/")
 
-    {:noreply, state}
+    unless File.exists?("priv/static/songs/songs_#{playlist}"),
+      do: File.mkdir("priv/static/songs/songs_#{playlist}")
+
+    System.cmd(tar, ~w(-cvf priv/static/songs/songs_#{playlist}.tar songs_#{playlist}/))
+
+    {:reply, :ok, state}
   end
 end

@@ -13,15 +13,27 @@ defmodule PalsoundWeb.SongProcess do
 
   def process_songs(conn, %{"song" => song}) do
     playlist = song["search"]
-    checkbox = song["all"]
+    songs_checkbox = song["all"]
     quantity_string = song["songs_quantity"]
+    thumbnail_checkbox = song["thumbnail"]
 
+    # Check the value of the 'thumbnail'
+    thumbnail_value =
+      if thumbnail_checkbox == "true" do
+        :get_thumbnail
+      else
+        :no_thumbnail
+      end
+
+
+    # Check if the user is requesting the whole playlist of songs
+    # or just a specified amount
     fetched_songs? =
-      if checkbox == "true" do
-        Videos.run(playlist)
+      if songs_checkbox == "true" do
+        Videos.run(playlist, nil, thumbnail_value)
       else
         quantity = String.to_integer(quantity_string)
-        Videos.run(playlist, quantity)
+        Videos.run(playlist, quantity, thumbnail_value)
       end
 
     case fetched_songs? do
