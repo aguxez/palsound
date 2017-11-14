@@ -15,7 +15,7 @@
 
         <div class="small-12 medium-4 cell">
           <%= label f, :songs_quantity, "Quantity" %>
-          <%= number_input f, :songs_quantity, min: 1, max: 10, value: 1 %>
+          <%= number_input f, :songs_quantity, min: 1, value: 1 %>
         </div>
 
         <!-- Making space with an invisible div -->
