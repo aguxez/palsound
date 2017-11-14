@@ -44,6 +44,7 @@ defmodule Palsound.Mixfile do
       {:tub_ex, github: "Aguxez/tub_ex", branch: "get_items"},
       {:porcelain, "~> 2.0"},
       {:gproc, "~> 0.6.1"},
+      {:poolboy, "~> 1.5"},
       {:credo, "~> 0.8.8", only: [:dev]},
     ]
   end
