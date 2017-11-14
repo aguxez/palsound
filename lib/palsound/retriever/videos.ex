@@ -6,7 +6,6 @@ defmodule Palsound.Retriever.Videos do
   require Logger
 
   alias TubEx.Playlist
-  alias Porcelain.Process, as: Proc
   alias Palsound.{Retriever.Checker, Service.Cache}
 
   # Agent
@@ -90,22 +89,4 @@ defmodule Palsound.Retriever.Videos do
   end
 
   defp process_playlist({:error, _}, _, _), do: []
-
-  # TODO: Move this to a Pool of workers
-  def queue_and_download(songs, songs_path, thumbnail) do
-    thumbnail_value =
-      case thumbnail do
-        :no_thumbnail -> ""
-        _ -> "--write-thumbnail"
-      end
-
-    Enum.each(songs, fn curr_song ->
-      %Proc{out: audio} =
-        Porcelain.spawn(System.find_executable("youtube-dl"),
-          ~w(-i --audio-format mp3 --extract-audio #{thumbnail_value}
-            -o #{songs_path} #{curr_song}), out: :stream)
-
-      audio
-    end)
-  end
 end

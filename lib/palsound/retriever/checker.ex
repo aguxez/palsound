@@ -12,7 +12,7 @@ defmodule Palsound.Retriever.Checker do
 
   require Logger
 
-  alias Palsound.{Retriever.Videos, Service.Packager}
+  alias Palsound.Service.{Packager, Downloader}
   alias PalsoundWeb.ProcessingChannel
 
   # @playlist "PLbggoxi0-M8xblFoDD2kq02MNfSyOYKAp"
@@ -80,7 +80,7 @@ defmodule Palsound.Retriever.Checker do
     new_state =
       Enum.reject(state_map[:songs], fn x -> x in ten_songs end)
 
-    Videos.queue_and_download(ten_songs, songs_path, thumbnail)
+    Downloader.queue_and_download(ten_songs, songs_path, thumbnail)
 
     {:noreply, [songs: new_state]}
   end
