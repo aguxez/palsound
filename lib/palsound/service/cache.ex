@@ -4,9 +4,6 @@ defmodule Palsound.Service.Cache do
   so we don't hit the same page twice unnecessarily.
   """
 
-  # TODO: Make it multi-user; maybe add a pool of workers so it doesn't grow
-  # too much.
-
   use GenServer
 
   # API

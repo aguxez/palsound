@@ -4,9 +4,6 @@ defmodule Palsound.Service.Packager do
   sending them in a .tar.gz file to the session.
   """
 
-  # TODO: This should take the name of a folder and then packaging
-  # that one, deleting it right after the process is done.
-
   use GenServer
 
   # API
