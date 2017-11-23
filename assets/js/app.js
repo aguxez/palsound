@@ -11,12 +11,18 @@
 //
 // If you no longer want to use a dependency, remember
 // to also remove its path from "config.paths.watched".
-import "phoenix_html"
-import "./custom.js"
+import "phoenix_html";
+import "./custom.js";
 
 // Import local files
 //
 // Local files can be imported directly using relative
 // paths "./socket" or full ones "web/static/js/socket".
 
-import socket from "./socket"
+import socket from "./socket";
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker
+    .register('./js/service-worker.js')
+    .then(function() { console.log("Registered service worker"); });
+}
