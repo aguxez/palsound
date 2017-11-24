@@ -47,6 +47,8 @@ defmodule Palsound.Retriever.Checker do
   end
 
   def handle_info({:check, thumbnail, playlist}, state) do
+    IO.inspect("CHECKING")
+
     files =
       "songs_#{playlist}"
       |> File.ls!()
@@ -54,6 +56,7 @@ defmodule Palsound.Retriever.Checker do
 
     if length(files) <= 1 do
       Enum.each(files, &File.rm_rf("songs_#{playlist}/" <> &1))
+      IO.inspect("[DISPATCHING] //// #{playlist}")
       dispatch(:songs, thumbnail, playlist)
     end
 
@@ -62,6 +65,7 @@ defmodule Palsound.Retriever.Checker do
       Logger.info("ALL SONGS DISPATCHED")
       ProcessingChannel.push(playlist)
     else
+      IO.inspect("[SCHEDULING ANOTHER CHECK] //// #{playlist}")
       pid = get_gen_pid(:songs)
       schedule_checks(pid, thumbnail, playlist)
     end
@@ -80,6 +84,10 @@ defmodule Palsound.Retriever.Checker do
     new_state =
       Enum.reject(state_map[:songs], fn x -> x in ten_songs end)
 
+    IO.inspect(ten_songs, label: "[TEN SONGS]")
+    IO.inspect(new_state, label: "[NEW STATE]")
+    IO.inspect(state_map, label: "[STATE MAP]")
+
     Downloader.queue_and_download(ten_songs, songs_path, thumbnail)
 
     {:noreply, [songs: new_state]}
@@ -89,8 +97,11 @@ defmodule Palsound.Retriever.Checker do
     new_songs_list = Enum.take(state[:songs], 10)
     new_state = Enum.reject(state[:songs], fn x -> x in new_songs_list end)
 
+    IO.inspect(new_songs_list, label: "[NEW SONGS LIST]")
+    IO.inspect(new_state, label: "[NEW STATE ON DISPATCH COMMAND]")
+
     Logger.info("Sending #{length(new_songs_list)} songs to queue")
-    queue(:songs, new_state, thumbnail, playlist)
+    queue(:songs, new_songs_list, thumbnail, playlist)
 
     {:noreply, [songs: new_state]}
   end
