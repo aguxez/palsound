@@ -15,11 +15,10 @@ defmodule Palsound.Retriever.Checker do
   alias Palsound.Service.{Packager, Downloader}
   alias PalsoundWeb.ProcessingChannel
 
-  # @playlist "PLbggoxi0-M8xblFoDD2kq02MNfSyOYKAp"
-
   def start_link(name, thumb, playlist_id) do
     state = %{name: name, songs: [], thumbnail: thumb, playlist: playlist_id}
     GenServer.start_link(__MODULE__, state, name: via_tuple(name))
+    IO.inspect("[STARTED CHECKER]")
   end
 
   def queue(name, songs, thumbnail, playlist) do
@@ -47,25 +46,24 @@ defmodule Palsound.Retriever.Checker do
   end
 
   def handle_info({:check, thumbnail, playlist}, state) do
-    IO.inspect("CHECKING")
+    song_folder = "priv/static/songs/song_#{playlist}"
 
     files =
-      "songs_#{playlist}"
+      song_folder
       |> File.ls!()
       |> Enum.reject(fn x -> String.ends_with?(x, "mp3") end)
 
     if length(files) <= 1 do
-      Enum.each(files, &File.rm_rf("songs_#{playlist}/" <> &1))
-      IO.inspect("[DISPATCHING] //// #{playlist}")
+      Enum.each(files, &File.rm_rf(song_folder <> "/" <> &1))
       dispatch(:songs, thumbnail, playlist)
     end
 
-    if state[:songs] == [] do
+    if state[:songs] == [] && length(files) <= 1 do
       Packager.package(playlist)
-      Logger.info("ALL SONGS DISPATCHED")
       ProcessingChannel.push(playlist)
+      Logger.info("ALL SONGS DISPATCHED")
+      Packager.remove(playlist)
     else
-      IO.inspect("[SCHEDULING ANOTHER CHECK] //// #{playlist}")
       pid = get_gen_pid(:songs)
       schedule_checks(pid, thumbnail, playlist)
     end
@@ -78,15 +76,13 @@ defmodule Palsound.Retriever.Checker do
   # remaining songs, 10 by 10.
   def handle_cast({:queue, songs, thumbnail, playlist}, state) do
     ten_songs = Enum.take(songs, 10)
-    songs_path = "songs_#{playlist}/%(title)s.%(ext)s"
+    songs_path = "priv/static/songs/song_#{playlist}/%(title)s.%(ext)s"
     state_map = Keyword.put(state, :songs, songs)
 
+    # Creates the new state to be passed when queue-ing new songs
+    # Removes the songs in 'ten_songs' from the state
     new_state =
       Enum.reject(state_map[:songs], fn x -> x in ten_songs end)
-
-    IO.inspect(ten_songs, label: "[TEN SONGS]")
-    IO.inspect(new_state, label: "[NEW STATE]")
-    IO.inspect(state_map, label: "[STATE MAP]")
 
     Downloader.queue_and_download(ten_songs, songs_path, thumbnail)
 
@@ -96,9 +92,6 @@ defmodule Palsound.Retriever.Checker do
   def handle_cast({:dispatch, thumbnail, playlist}, state) do
     new_songs_list = Enum.take(state[:songs], 10)
     new_state = Enum.reject(state[:songs], fn x -> x in new_songs_list end)
-
-    IO.inspect(new_songs_list, label: "[NEW SONGS LIST]")
-    IO.inspect(new_state, label: "[NEW STATE ON DISPATCH COMMAND]")
 
     Logger.info("Sending #{length(new_songs_list)} songs to queue")
     queue(:songs, new_songs_list, thumbnail, playlist)

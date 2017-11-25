@@ -39,8 +39,8 @@ defmodule Palsound.Retriever.Videos do
 
         songs = get_songs_amount(songs_list, amount)
 
-        unless File.exists?("songs_#{playlist_id}"),
-          do: File.mkdir("songs_#{playlist_id}")
+        unless File.exists?("priv/static/songs/song_#{playlist_id}"),
+          do: File.mkdir_p("priv/static/songs/song_#{playlist_id}")
 
         Checker.start_link(:songs, thumbnail, playlist_id)
         Checker.queue(:songs, songs, thumbnail, playlist_id)

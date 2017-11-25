@@ -30,11 +30,11 @@ channel.on("pushing_file", payload => {
   let notification_text = document.getElementById("notification-text");
 
   load_spinner.parentNode.removeChild(load_spinner);
+  notification_text.innerHTML = '<h5>Your song has been processed</h5>';
 
   document.body.innerHTML +=
-        '<iframe width="1" height="1" frameborder="0" src="/songs/songs_' + payload.playlist + '.tar"></iframe>';
-
-  notification_text.innerHTML = '<h5>Your song has been processed</h5>';
+      '<iframe width="1" height="1" frameborder="0" \
+      src="/to_be_served/song_' + payload.playlist + '.zip"></iframe>';
 });
 
 export default socket;

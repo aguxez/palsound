@@ -10,26 +10,34 @@ defmodule Palsound.Service.Packager do
   def start_link,
     do: GenServer.start_link(__MODULE__, [], name: :packager)
 
-  def package(id) do
-    GenServer.call(:packager, {:package, id})
-  end
+  def package(id),
+    do: GenServer.call(:packager, {:package, id})
+
+  def remove(id),
+    do: GenServer.call(:packager, {:remove, id})
 
   # Server
   def init(state), do: {:ok, state}
 
   def handle_call({:package, playlist}, _from, state) do
-    tar = System.find_executable("tar")
+    zip = System.find_executable("zip")
 
-    # Create the 'songs' folder if it doesn't exists and then
-    # creates each folder for each playlist respectively.
-    unless File.exists?("priv/static/songs"),
-      do: File.mkdir("priv/static/songs/")
+    # Creates the folder from where the songs are going to be dispatched
+    unless File.exists?("priv/static/to_be_served/"),
+      do: File.mkdir_p("priv/static/to_be_served/")
 
-    unless File.exists?("priv/static/songs/songs_#{playlist}"),
-      do: File.mkdir("priv/static/songs/songs_#{playlist}")
+      options = ~w(-rj priv/static/to_be_served/song_#{playlist}.zip priv/static/songs/song_#{playlist})
 
-    System.cmd(tar, ~w(-cvf priv/static/songs/songs_#{playlist}.tar songs_#{playlist}/))
+    System.cmd(zip, options)
 
-    {:reply, :ok, state}
+    {:reply, :package_completed, state}
+  end
+
+  def handle_call({:remove, id}, _from, state) do
+    Process.sleep(1000)
+    File.rm_rf("priv/static/songs/song_#{id}")
+    File.rm_rf("priv/static/to_be_served/song_#{id}.zip")
+
+    {:reply, :removed_package, state}
   end
 end
