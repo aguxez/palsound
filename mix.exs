@@ -41,10 +41,15 @@ defmodule Palsound.Mixfile do
       {:phoenix_live_reload, "~> 1.0", only: :dev},
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0"},
+
+      # Additional deps
       {:tub_ex, github: "Aguxez/tub_ex", branch: "get_items"},
       {:porcelain, "~> 2.0"},
       {:gproc, "~> 0.6.1"},
       {:poolboy, "~> 1.5"},
+      {:distillery, "~> 1.5"},
+
+      # Dev tools
       {:credo, "~> 0.8.8", only: [:dev]},
     ]
   end

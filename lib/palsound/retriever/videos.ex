@@ -42,8 +42,12 @@ defmodule Palsound.Retriever.Videos do
         unless File.exists?("priv/static/songs/song_#{playlist_id}"),
           do: File.mkdir_p("priv/static/songs/song_#{playlist_id}")
 
-        Checker.start_link(:songs, thumbnail, playlist_id)
-        Checker.queue(:songs, songs, thumbnail, playlist_id)
+        # Name is the first argument, we're passing the playlist so
+        # we can stop the GenServer once is done.
+        # TODO: Test with the Pool of Workers and maybe add a queue if
+        # a process is not active.
+        Checker.start_link(playlist_id, thumbnail, playlist_id)
+        Checker.queue(playlist_id, songs, thumbnail, playlist_id)
 
         queued = "Queued songs"
         Logger.info(queued)

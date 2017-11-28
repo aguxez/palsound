@@ -40,6 +40,8 @@ defmodule Palsound.Retriever.Checker do
     {:ok, state.songs}
   end
 
+  def terminate(_reason, _state), do: :ok
+
   defp schedule_checks(pid, thumb, playlist) do
     request = {:check, thumb, playlist}
     Process.send_after(pid, request, song_check_seconds())
@@ -55,7 +57,7 @@ defmodule Palsound.Retriever.Checker do
 
     if length(files) <= 1 do
       Enum.each(files, &File.rm_rf(song_folder <> "/" <> &1))
-      dispatch(:songs, thumbnail, playlist)
+      dispatch(playlist, thumbnail, playlist)
     end
 
     if state[:songs] == [] && length(files) <= 1 do
@@ -63,8 +65,9 @@ defmodule Palsound.Retriever.Checker do
       ProcessingChannel.push(playlist)
       Logger.info("ALL SONGS DISPATCHED")
       Packager.remove(playlist)
+      GenServer.stop(playlist)
     else
-      pid = get_gen_pid(:songs)
+      pid = get_gen_pid(playlist)
       schedule_checks(pid, thumbnail, playlist)
     end
 
@@ -94,7 +97,7 @@ defmodule Palsound.Retriever.Checker do
     new_state = Enum.reject(state[:songs], fn x -> x in new_songs_list end)
 
     Logger.info("Sending #{length(new_songs_list)} songs to queue")
-    queue(:songs, new_songs_list, thumbnail, playlist)
+    queue(playlist, new_songs_list, thumbnail, playlist)
 
     {:noreply, [songs: new_state]}
   end
